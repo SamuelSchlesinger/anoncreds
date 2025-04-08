@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous API Credits: A Web Platform Proposal</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2980b9;
+        }
+        .disclaimer {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-left: 4px solid #6c757d;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        .note {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .security-note {
+            background-color: #fff8e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #f39c12;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .diagram {
+            display: block;
+            margin: 30px auto;
+            max-width: 100%;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .comparison div {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .api-example {
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Anonymous API Credits: A Web Platform Proposal</h1>
+        <div style="display: flex; flex-direction: column; margin-bottom: 15px;">
+            <div style="margin-bottom: 10px;">
+                <a href="https://github.com/SamuelSchlesinger/anoncreds" target="_blank" style="display: inline-flex; align-items: center; text-decoration: none; color: #333;">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTIgMGMtNi42MjYgMC0xMiA1LjM3My0xMiAxMiAwIDUuMzAyIDMuNDM4IDkuOCA4LjIwNyAxMS4zODcuNTk5LjExMS43OTMtLjI2MS43OTMtLjU3N3YtMi4yMzRjLTMuMzM4LjcyNi00LjAzMy0xLjQxNi00LjAzMy0xLjQxNi0uNTQ2LTEuMzg3LTEuMzMzLTEuNzU2LTEuMzMzLTEuNzU2LTEuMDg5LS43NDUuMDgzLS43MjkuMDgzLS43MjkgMS4yMDUuMDg0IDEuODM5IDEuMjM3IDEuODM5IDEuMjM3IDEuMDcgMS44MzQgMi44MDcgMS4zMDQgMy40OTIuOTk3LjEwNy0uNzc1LjQxOC0xLjMwNS43NjItMS42MDQtMi42NjUtLjMwNS01LjQ2Ny0xLjMzNC01LjQ2Ny01LjkzMSAwLTEuMzExLjQ2OS0yLjM4MSAxLjIzNi0zLjIyMS0uMTI0LS4zMDMtLjUzNS0xLjUyNC4xMTctMy4xNzYgMCAwIDEuMDA4LS4zMjIgMy4zMDEgMS4yMy45NTctLjI2NiAxLjk4My0uMzk5IDMuMDAzLS40MDQgMS4wMi4wMDUgMi4wNDcuMTM4IDMuMDA2LjQwNCAyLjI5MS0xLjU1MiAzLjI5Ny0xLjIzIDMuMjk3LTEuMjMuNjUzIDEuNjUzLjI0MiAyLjg3NC4xMTggMy4xNzYuNzcuODQgMS4yMzUgMS45MTEgMS4yMzUgMy4yMjEgMCA0LjYwOS0yLjgwNyA1LjYyNC01LjQ3OSA1LjkyMS40My4zNzIuODIzIDEuMTAyLjgyMyAyLjIyMnYzLjI5M2MwIC4zMTkuMTkyLjY5NC44MDEuNTc2IDQuNzY1LTEuNTg5IDguMTk5LTYuMDg2IDguMTk5LTExLjM4NiAwLTYuNjI3LTUuMzczLTEyLTEyLTEyeiIvPjwvc3ZnPg==" alt="GitHub" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <span>View on GitHub</span>
+                </a>
+            </div>
+            <div>
+                <a href="https://docs.google.com/document/d/1F4BN-SJnXt9hlk0Ay5iDQPSS88yMBD_3l6GKMC5ydQg/edit?tab=t.0" target="_blank" style="display: inline-flex; align-items: center; text-decoration: none; color: #3498db;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="margin-right: 8px;">
+                        <path fill="#3498db" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+                        <path fill="#3498db" d="M8 12h8v1H8zm0 2h8v1H8zm0 2h5v1H8z"/>
+                    </svg>
+                    <span>Design Proposal</span>
+                </a>
+            </div>
+        </div>
+        <div class="disclaimer">
+            <p><strong>Disclaimer:</strong> This is a personal proposal and does not represent the views of my employer, Google.</p>
+        </div>
+    </header>
+
+    <main>
+        <h2>Objective</h2>
+        <p>Add browser-native support for anonymous, paid API usage through a new Web Platform API.</p>
+
+        <div class="note">
+            <strong>TL;DR:</strong> This proposal introduces a new Web API (<code>navigator.anonymousCredits</code>) that enables browsers to handle anonymous API credit operations using BBS signatures. By embedding these cryptographic operations directly in the browser, we can prevent side-channel attacks and provide stronger privacy guarantees for users accessing APIs like LLMs, while maintaining security for API providers.
+        </div>
+
+        <h2>Background: The Problem</h2>
+        <p>In today's web ecosystem:</p>
+        <ul>
+            <li>API providers sell access to their services via API credits</li>
+            <li>Users create API keys tied to their identity</li>
+            <li>Each API call includes the same API key in request headers</li>
+            <li>This reveals user identity and allows all activities to be linked together</li>
+        </ul>
+        
+        <p>This creates significant privacy concerns, especially for sensitive applications:</p>
+        <ul>
+            <li>When using Large Language Models (LLMs), users may share personal or sensitive information</li>
+            <li>Web browsers and applications may inadvertently leak user context across API calls</li>
+            <li>LLM-based agents representing users need anonymity when accessing multiple services</li>
+        </ul>
+
+        <div class="security-note">
+            <strong>Security Concern:</strong> Implementing cryptographic primitives in JavaScript is vulnerable to side-channel attacks. For strong security guarantees, these operations must be implemented directly in the browser as a native Web API, similar to approaches like Private Proof and WebCrypto.
+        </div>
+
+        <h2>Key Requirements</h2>
+        <ul>
+            <li><strong>Browser-native implementation:</strong> Cryptographic operations must be handled by the browser to prevent side-channel attacks</li>
+            <li><strong>Prevent double-spending:</strong> API providers must be confident that credits cannot be spent more than once</li>
+            <li><strong>Credit conservation:</strong> The total number of credits issued must always be greater than or equal to the quantity of credits spent</li>
+            <li><strong>True anonymity:</strong> API providers should be unable to correlate different spending transactions to the same user</li>
+            <li><strong>User control:</strong> Users must be able to view, manage, and clear their anonymous credentials</li>
+            <li><strong>Permission-based:</strong> Access to the API requires explicit user permission</li>
+        </ul>
+
+        <h2>The Anonymous Credits Web API</h2>
+        
+        <h3>Proposed Web API</h3>
+        <p>The Anonymous Credits API would be available via <code>navigator.anonymousCredits</code> and follows similar permission and security patterns as the Private Proof API and other sensitive browser APIs.</p>
+
+        <div class="api-example">
+            <h4>API Interface</h4>
+            <pre>
+interface AnonymousCredits {
+  // Request permission to use anonymous credits
+  Promise&lt;PermissionState&gt; requestPermission();
+  
+  // Get current permission state
+  Promise&lt;PermissionState&gt; getPermissionState();
+  
+  // Purchase credits and get initial token
+  Promise&lt;CreditResult&gt; purchaseCredits(PurchaseOptions options);
+  
+  // Spend credits anonymously
+  Promise&lt;SpendResult&gt; spendCredits(SpendOptions options);
+  
+  // Get credit balance (aggregated across all tokens)
+  Promise&lt;number&gt; getTotalBalance();
+  
+  // List all stored credit tokens (domain-specific)
+  Promise&lt;CreditToken[]&gt; listCreditTokens(string issuer);
+  
+  // Clear all credit tokens
+  Promise&lt;void&gt; clearAllTokens();
+  
+  // Clear tokens for a specific issuer
+  Promise&lt;void&gt; clearTokens(string issuer);
+  
+  // Events
+  attribute EventHandler onbalancechange;
+}
+
+interface PurchaseOptions {
+  required string issuer;          // Origin of the issuer 
+  required number amount;          // Amount of credits to purchase
+  optional string paymentToken;    // Payment confirmation token
+}
+
+interface CreditResult {
+  string tokenId;          // Opaque token identifier
+  number balance;          // Current balance
+  string label;            // User-friendly label
+}
+
+interface SpendOptions {
+  required string endpoint;        // API endpoint to call
+  required number amount;          // Amount to spend
+  optional string tokenId;         // Specific token to use (or auto-select)
+  optional object requestData;     // Data to include in the request
+  optional RequestInit fetchOptions; // Additional fetch options
+}
+
+interface SpendResult {
+  string tokenId;          // Opaque token identifier for the new token
+  number remainingBalance; // Remaining balance after spending
+  Response response;       // Response from the API call
+}
+
+// Types specific to the underlying BBS implementation
+interface CreditToken {
+  string id;               // Opaque token identifier
+  number balance;          // Current balance
+  string issuer;           // Issuer origin
+  string label;            // User-friendly label
+}
+</pre>
+        </div>
+
+        <h3>Technical Implementation</h3>
+        <p>Under the hood, the API implements BBS signatures for anonymous credentials:</p>
+        
+        <ol>
+            <li><strong>KeyGen:</strong> The API provider (issuer) generates a BBS keypair and publishes the public key at a well-known endpoint.</li>
+            
+            <li><strong>Issue:</strong> When a user purchases credits:
+                <ul>
+                    <li>The browser generates random blinding factors k and r internally</li>
+                    <li>The browser handles the cryptographic request/response with the issuer</li>
+                    <li>The resulting Credit Token is stored securely in the browser's protected storage</li>
+                </ul>
+            </li>
+            
+            <li><strong>Spend:</strong> When spending credits:
+                <ul>
+                    <li>The browser selects an appropriate token (or uses the specified one)</li>
+                    <li>Generates new random values internally for the next token</li>
+                    <li>Creates and verifies zero-knowledge proofs entirely within the browser</li>
+                    <li>Handles the API request with appropriate anonymous credentials</li>
+                    <li>Processes the response and stores the new token with remaining balance</li>
+                </ul>
+            </li>
+        </ol>
+
+        <div class="security-note">
+            <strong>Side-Channel Prevention:</strong> By implementing these operations natively in the browser:
+            <ul>
+                <li>Cryptographic computations happen in the browser's secure context</li>
+                <li>Random values are generated using the browser's secure random number generator</li>
+                <li>Timing attacks are mitigated through constant-time implementations</li>
+                <li>Memory access patterns are protected from JavaScript observation</li>
+                <li>Private keys and tokens never leave the browser's secure storage</li>
+            </ul>
+        </div>
+
+        <h2>Usage Example for Web Developers</h2>
+        <pre>
+// Check and request permission
+async function setupAnonymousCredits() {
+  const permissionStatus = await navigator.anonymousCredits.getPermissionState();
+  
+  if (permissionStatus !== "granted") {
+    const result = await navigator.anonymousCredits.requestPermission();
+    if (result !== "granted") {
+      throw new Error("Permission to use anonymous credits denied");
+    }
+  }
+}
+
+// Purchase credits from an API provider
+async function buyCredits(amount) {
+  try {
+    const creditResult = await navigator.anonymousCredits.purchaseCredits({
+      issuer: "https://api-provider.com",
+      amount: amount,
+      paymentToken: "payment-confirmation-xyz", // From payment processor
+      label: "LLM API Credits"
+    });
+    
+    console.log(`Purchased ${amount} credits, token ID: ${creditResult.tokenId}`);
+    return creditResult;
+  } catch (error) {
+    console.error("Failed to purchase credits:", error);
+    throw error;
+  }
+}
+
+// Call an API anonymously using credits
+async function queryLLMAnonymously(prompt) {
+  try {
+    // Spend 10 credits to query the LLM API
+    const result = await navigator.anonymousCredits.spendCredits({
+      endpoint: "https://api-provider.com/v1/completions",
+      amount: 10,
+      requestData: {
+        model: "gpt-4",
+        prompt: prompt,
+        max_tokens: 1000
+      }
+    });
+    
+    // Get the API response
+    const data = await result.response.json();
+    
+    console.log(`Remaining balance: ${result.remainingBalance} credits`);
+    return data.completion;
+  } catch (error) {
+    console.error("Anonymous API call failed:", error);
+    throw error;
+  }
+}
+
+// Event listener for balance changes
+navigator.anonymousCredits.onbalancechange = (event) => {
+  updateUIWithNewBalance(event.detail.totalBalance);
+};
+</pre>
+
+        <h2>Security and Privacy Considerations</h2>
+        
+        <h3>Permission Model</h3>
+        <p>The Anonymous Credits API requires explicit user permission:</p>
+        <ul>
+            <li>Permission prompt clearly explains what the API does and how it will be used</li>
+            <li>Permission can be revoked via browser settings</li>
+            <li>Limited to secure contexts (HTTPS only)</li>
+            <li>Follows the same permission model as other sensitive APIs</li>
+        </ul>
+        
+        <h3>Browser Storage</h3>
+        <p>Credit tokens are stored securely:</p>
+        <ul>
+            <li>Protected from JavaScript access (cannot be extracted via client-side code)</li>
+            <li>Isolated per origin (tokens from one site cannot be used by another)</li>
+            <li>Unpartitioned in third party contexts, to enable embedded micropayment providers</li>
+            <li>Cleared when browser data is cleared</li>
+            <li>Optionally, support for user-triggered clearing via browser UI</li>
+        </ul>
+        
+        <h3>Anti-Fingerprinting Measures</h3>
+        <p>To prevent using this API for fingerprinting:</p>
+        <ul>
+            <li>Tokens are not exposed to JavaScript directly, instead an opaque ID is exposed</li>
+            <li>Timing of cryptographic operations is constant</li>
+            <li>API returns standardized errors that don't leak information</li>
+            <li>Spends have standardized formats that don't reveal browser-specific details or any information about their contents</li>
+        </ul>
+
+        <h2>Implementation with BBS Signatures</h2>
+        <p>The underlying cryptographic implementation uses BBS signatures, which enable selective disclosure and zero-knowledge proofs:</p>
+        
+        <h3>Cryptographic Components</h3>
+        <ul>
+            <li><strong>Issuer Setup:</strong> Generate BBS keypair (sk, pk)</li>
+            <li><strong>Credit Issuance:</strong> Sign a tuple of (n, k, r) where:
+                <ul>
+                    <li>n = number of credits (visible to issuer)</li>
+                    <li>k = random identifier (hidden from issuer, prevents double-spending)</li>
+                    <li>r = random value (hidden from issuer, provides unlinkability)</li>
+                </ul>
+            </li>
+            <li><strong>Credit Spending:</strong> Uses zero-knowledge proofs to:
+                <ul>
+                    <li>Prove possession of a valid signature on (n, k, r)</li>
+                    <li>Prove that n ≥ c (where c is the amount being spent)</li>
+                    <li>Reveal only k (for double-spend prevention) and c</li>
+                    <li>Create a commitment to new values (n-c, k', r') for the remaining balance</li>
+                    <li>Issuer signs that commitment without being able to know its contents, retrieving a new BBS signature which cannot be re-identified in future spends</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h2>Comparison to Private Proof API</h2>
+        
+        <div class="comparison">
+            <div>
+                <h3>Private Proof API</h3>
+                <ul>
+                    <li>✅ Provides privacy-preserving verification</li>
+                    <li>✅ Browser-native implementation</li>
+                    <li>✅ Focused on preventing abuse while preserving privacy</li>
+                    <li>✅ Uses zero-knowledge proofs</li>
+                    <li>✅ Underlying tokens are reused</li>
+                    <li>✅ Does not require user permission to use the API</li>
+                    <li>❌ Not designed for payment/credits systems</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Anonymous Credits API</h3>
+                <ul>
+                    <li>✅ Specifically designed for API payment credits</li>
+                    <li>✅ Full anonymity across transactions</li>
+                    <li>✅ Supports partial spending of credits</li>
+                    <li>✅ Double-spend protection</li>
+                    <li>✅ Similar zero-knowledge proofs</li>
+                    <li>✅ Underlying tokens are not reused, but a new one is created with the remaining balance</li>
+                    <li>❌ Requires user permission to use the API</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>Additional Considerations</h2>
+        <ul>
+            <li><strong>Performance:</strong> Native implementation ensures efficient cryptographic operations</li>
+            <li><strong>Accessibility:</strong> Browser UI should make credit management accessible to all users</li>
+            <li><strong>Mobile Support:</strong> Mobile browsers should support the same API</li>
+            <li><strong>Internationalization:</strong> UI and error messages should be localized</li>
+            <li><strong>Audit Trail:</strong> Provide users with privacy-preserving usage history</li>
+        </ul>
+
+        <div class="note">
+            <strong>Next Steps:</strong> Feedback is very important to this proposal going anywhere, please reply on my GitHub repository here: <a href="https://github.com/SamuelSchlesinger/anoncreds/issues">discussion</a>
+        </div>
+    </main>
+</body>
+</html>
