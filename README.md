@@ -2,6 +2,11 @@
 
 A privacy-preserving approach for anonymous, paid usage of web APIs.
 
+
+## Disclaimer
+
+This is a personal proposal and does not represent the views of my employer, Google.
+
 ## Overview
 
 This project proposes a cryptographic approach that allows users to purchase API credits and spend them anonymously within the same service. By implementing these cryptographic operations directly in the browser, we can prevent side-channel attacks and provide stronger privacy guarantees for users accessing APIs like LLMs, while maintaining security for API providers.
@@ -35,4 +40,4 @@ This project is in the early proposal stage. We welcome community input on the d
 
 ## License
 
-[MIT](LICENSE)
+Currently, all rights are reserved. Please give feedback on this proposal directly rather than forking it.
