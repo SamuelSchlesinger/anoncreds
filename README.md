@@ -1,5 +1,7 @@
 # Anonymous API Credits
 
+WIP, but want to get early feedback to see if this is worth pursuing.
+
 A privacy-preserving approach for anonymous, paid usage of web APIs.
 
 
