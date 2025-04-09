@@ -151,7 +151,7 @@
         </ul>
 
         <div class="security-note">
-            <strong>Security Concern:</strong> Implementing cryptographic primitives in JavaScript is vulnerable to side-channel attacks. For strong security guarantees, these operations must be implemented directly in the browser as a native Web API, similar to approaches like Private Proof and WebCrypto.
+            <strong>Security Concern:</strong> Implementing cryptographic primitives in JavaScript is vulnerable to side-channel attacks. For strong security guarantees, these operations must be implemented directly in the browser as a native Web API, similar to approaches like the Private Proof API and WebCrypto.
         </div>
 
         <h2>Key Requirements</h2>
@@ -184,10 +184,7 @@ interface AnonymousCredits {
   
   // Spend credits anonymously
   Promise&lt;SpendResult&gt; spendCredits(SpendOptions options);
-  
-  // Get credit balance (aggregated across all tokens)
-  Promise&lt;number&gt; getTotalBalance();
-  
+   
   // List all stored credit tokens (domain-specific)
   Promise&lt;CreditToken[]&gt; listCreditTokens(string issuer);
   
@@ -196,20 +193,15 @@ interface AnonymousCredits {
   
   // Clear tokens for a specific issuer
   Promise&lt;void&gt; clearTokens(string issuer);
-  
-  // Events
-  attribute EventHandler onbalancechange;
 }
 
 interface PurchaseOptions {
   required string issuer;          // Origin of the issuer 
-  required number amount;          // Amount of credits to purchase
   optional string paymentToken;    // Payment confirmation token
 }
 
 interface CreditResult {
   string tokenId;          // Opaque token identifier
-  number balance;          // Current balance
   string label;            // User-friendly label
 }
 
@@ -223,14 +215,12 @@ interface SpendOptions {
 
 interface SpendResult {
   string tokenId;          // Opaque token identifier for the new token
-  number remainingBalance; // Remaining balance after spending
   Response response;       // Response from the API call
 }
 
 // Types specific to the underlying BBS implementation
 interface CreditToken {
   string id;               // Opaque token identifier
-  number balance;          // Current balance
   string issuer;           // Issuer origin
   string label;            // User-friendly label
 }
@@ -322,18 +312,12 @@ async function queryLLMAnonymously(prompt) {
     // Get the API response
     const data = await result.response.json();
     
-    console.log(`Remaining balance: ${result.remainingBalance} credits`);
     return data.completion;
   } catch (error) {
     console.error("Anonymous API call failed:", error);
     throw error;
   }
 }
-
-// Event listener for balance changes
-navigator.anonymousCredits.onbalancechange = (event) => {
-  updateUIWithNewBalance(event.detail.totalBalance);
-};
 </pre>
 
         <h2>Security and Privacy Considerations</h2>
@@ -364,6 +348,7 @@ navigator.anonymousCredits.onbalancechange = (event) => {
             <li>Timing of cryptographic operations is constant</li>
             <li>API returns standardized errors that don't leak information</li>
             <li>Spends have standardized formats that don't reveal browser-specific details or any information about their contents</li>
+            <li>Balance amounts must be obscured from the renderer</li>
         </ul>
 
         <h2>Implementation with BBS Signatures</h2>
