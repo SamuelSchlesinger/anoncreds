@@ -190,14 +190,12 @@ interface AnonymousCredits {
 interface PurchaseOptions {
   required string endpoint;          // Origin of the issuer 
   optional object requestData;       // Payment confirmation token
-  optional RequestInit fetchOptions; // Additional fetch options
 }
 
 interface SpendOptions {
   required string endpoint;          // API endpoint to call
   required number amount;            // Amount to spend
   optional object requestData;       // Data to include in the request
-  optional RequestInit fetchOptions; // Additional fetch options
 }
 </pre>
         </div>
