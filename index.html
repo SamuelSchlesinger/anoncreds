@@ -173,11 +173,6 @@
             <h4>API Interface</h4>
             <pre>
 interface AnonymousCredits {
-  // Request permission to use anonymous credits
-  Promise&lt;PermissionState&gt; requestPermission();
-  
-  // Get current permission state
-  Promise&lt;PermissionState&gt; getPermissionState();
   
   // Purchase credits and get initial token
   Promise&lt;CreditResult&gt; purchaseCredits(PurchaseOptions options);
@@ -265,17 +260,9 @@ interface CreditToken {
 
         <h2>Usage Example for Web Developers</h2>
         <pre>
-// Check and request permission
-async function setupAnonymousCredits() {
-  const permissionStatus = await navigator.anonymousCredits.getPermissionState();
-  
-  if (permissionStatus !== "granted") {
-    const result = await navigator.anonymousCredits.requestPermission();
-    if (result !== "granted") {
-      throw new Error("Permission to use anonymous credits denied");
-    }
-  }
-}
+// Permission is now handled via the Permissions-Policy header
+// The browser will automatically prompt for permission on first API use
+// This follows the same model as the Geolocation API
 
 // Purchase credits from an API provider
 async function buyCredits(amount) {
@@ -323,7 +310,13 @@ async function queryLLMAnonymously(prompt) {
         <h2>Security and Privacy Considerations</h2>
         
         <h3>Permission Model</h3>
-        <p>The Anonymous Credits API requires explicit user permission:</p>
+        <p>The Anonymous Credits API uses a permission policy controlled via HTTP headers:</p>
+        <pre>
+Permissions-Policy: anoncreds=*
+        </pre>
+        <p>This header can be used to control which origins are allowed to use the Anonymous Credits API, similar to the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API">Geolocation API</a>. The default value is <code>*</code>, which allows all origins to use the API.</p>
+        
+        <p>Additionally, the API requires explicit user permission:</p>
         <ul>
             <li>Permission prompt clearly explains what the API does and how it will be used</li>
             <li>Permission can be revoked via browser settings</li>
@@ -409,6 +402,17 @@ async function queryLLMAnonymously(prompt) {
         <p>In addition to the JavaScript API, this proposal includes a standardized header-based HTTP API to enable interoperability between browser implementations and API providers.</p>
         
         <h3>HTTP Headers and Endpoints</h3>
+        
+        <div class="api-example">
+            <h4>Permission Policy</h4>
+            <p>Websites can control which origins are allowed to use the Anonymous Credits API using the Permissions-Policy header:</p>
+            <pre>
+Permissions-Policy: anoncreds=*                   # Allow all origins (default)
+Permissions-Policy: anoncreds=(self)              # Allow only same origin
+Permissions-Policy: anoncreds=(self "https://trusted-third-party.com")  # Allow specific origins
+            </pre>
+            <p>This works similarly to other permission-policy controlled features like the Geolocation API.</p>
+        </div>
         
         <div class="api-example">
             <h4>Well-Known Public Key Endpoint</h4>
