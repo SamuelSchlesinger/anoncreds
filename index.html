@@ -166,7 +166,7 @@
 
         <h2>The Anonymous Credits Web API</h2>
         
-        <h3>Proposed Web API</h3>
+        <h3>requestData Web API</h3>
         <p>The Anonymous Credits API would be available via <code>navigator.anonymousCredits</code> and follows similar permission and security patterns as the Private Proof API and other sensitive browser APIs.</p>
 
         <div class="api-example">
@@ -175,14 +175,11 @@
 interface AnonymousCredits {
   
   // Purchase credits and get initial token
-  Promise&lt;CreditResult&gt; purchaseCredits(PurchaseOptions options);
+  Promise&lt;Response&gt; purchaseCredits(PurchaseOptions options);
   
   // Spend credits anonymously
-  Promise&lt;SpendResult&gt; spendCredits(SpendOptions options);
-   
-  // List all stored credit tokens (domain-specific)
-  Promise&lt;CreditToken[]&gt; listCreditTokens(string issuer);
-  
+  Promise&lt;Response&gt; spendCredits(SpendOptions options);
+    
   // Clear all credit tokens
   Promise&lt;void&gt; clearAllTokens();
   
@@ -191,42 +188,25 @@ interface AnonymousCredits {
 }
 
 interface PurchaseOptions {
-  required string issuer;          // Origin of the issuer 
-  optional string paymentToken;    // Payment confirmation token
-}
-
-interface CreditResult {
-  string tokenId;          // Opaque token identifier
-  string label;            // User-friendly label
-}
-
-interface SpendOptions {
-  required string endpoint;        // API endpoint to call
-  required number amount;          // Amount to spend
-  optional string tokenId;         // Specific token to use (or auto-select)
-  optional object requestData;     // Data to include in the request
+  required string endpoint;          // Origin of the issuer 
+  optional object requestData;       // Payment confirmation token
   optional RequestInit fetchOptions; // Additional fetch options
 }
 
-interface SpendResult {
-  string tokenId;          // Opaque token identifier for the new token
-  Response response;       // Response from the API call
-}
-
-// Types specific to the underlying BBS implementation
-interface CreditToken {
-  string id;               // Opaque token identifier
-  string issuer;           // Issuer origin
-  string label;            // User-friendly label
+interface SpendOptions {
+  required string endpoint;          // API endpoint to call
+  required number amount;            // Amount to spend
+  optional object requestData;       // Data to include in the request
+  optional RequestInit fetchOptions; // Additional fetch options
 }
 </pre>
         </div>
 
         <h3>Technical Implementation</h3>
-        <p>Under the hood, the API implements BBS signatures for anonymous credentials:</p>
+        <p>Under the hood, the API uses anonymous credentials:</p>
         
         <ol>
-            <li><strong>KeyGen:</strong> The API provider (issuer) generates a BBS keypair and publishes the public key at a well-known endpoint.</li>
+            <li><strong>KeyGen:</strong> The API provider (issuer) generates a keypair and publishes the public key at a well-known endpoint.</li>
             
             <li><strong>Issue:</strong> When a user purchases credits:
                 <ul>
@@ -267,15 +247,14 @@ interface CreditToken {
 // Purchase credits from an API provider
 async function buyCredits(amount) {
   try {
-    const creditResult = await navigator.anonymousCredits.purchaseCredits({
-      issuer: "https://api-provider.com",
+    const purchaseResponse = await navigator.anonymousCredits.purchaseCredits({
+      endpoint: "https://api-provider.com",
       amount: amount,
-      paymentToken: "payment-confirmation-xyz", // From payment processor
-      label: "LLM API Credits"
+      requestData: { "confirmation": "payment-confirmation-xyz"}, // From payment processor
     });
     
-    console.log(`Purchased ${amount} credits, token ID: ${creditResult.tokenId}`);
-    return creditResult;
+    console.log(`Purchased ${amount} credits`);
+    return;
   } catch (error) {
     console.error("Failed to purchase credits:", error);
     throw error;
@@ -344,13 +323,13 @@ Permissions-Policy: anoncreds=*
             <li>Balance amounts must be obscured from the renderer</li>
         </ul>
 
-        <h2>Implementation with BBS Signatures</h2>
-        <p>The underlying cryptographic implementation uses BBS signatures, which enable selective disclosure and zero-knowledge proofs:</p>
+        <h2>Implementation with Anonymous Credentials</h2>
+        <p>The underlying cryptographic implementation uses anonymlous credentials, which enable selective disclosure and zero-knowledge proofs:</p>
         
         <h3>Cryptographic Components</h3>
         <ul>
-            <li><strong>Issuer Setup:</strong> Generate BBS keypair (sk, pk)</li>
-            <li><strong>Credit Issuance:</strong> Sign a tuple of (n, k, r) where:
+            <li><strong>Issuer Setup:</strong> Generate keypair (sk, pk)</li>
+            <li><strong>Credit Issuance:</strong> Authenticate a tuple of (n, k, r) where:
                 <ul>
                     <li>n = number of credits (visible to issuer)</li>
                     <li>k = random identifier (hidden from issuer, prevents double-spending)</li>
@@ -359,11 +338,11 @@ Permissions-Policy: anoncreds=*
             </li>
             <li><strong>Credit Spending:</strong> Uses zero-knowledge proofs to:
                 <ul>
-                    <li>Prove possession of a valid signature on (n, k, r)</li>
+                    <li>Prove possession of an authenticated (n, k, r)</li>
                     <li>Prove that n ≥ c (where c is the amount being spent)</li>
                     <li>Reveal only k (for double-spend prevention) and c</li>
                     <li>Create a commitment to new values (n-c, k', r') for the remaining balance</li>
-                    <li>Issuer signs that commitment without being able to know its contents, retrieving a new BBS signature which cannot be re-identified in future spends</li>
+                    <li>Issuer signs that commitment without being able to know its contents, retrieving a new authentication code with a new k' which cannot be re-identified in future spends</li>
                 </ul>
             </li>
         </ul>
@@ -416,7 +395,7 @@ Permissions-Policy: anoncreds=(self "https://trusted-third-party.com")  # Allow 
         
         <div class="api-example">
             <h4>Well-Known Public Key Endpoint</h4>
-            <p>API providers must publish their BBS public key at a well-known location:</p>
+            <p>API providers must publish their public key at a well-known location:</p>
             <pre>
 GET /.well-known/anonymous-credits
 
@@ -424,7 +403,7 @@ Response:
 {
   "version": "1.0",
   "issuer": "https://api-provider.com",
-  "publicKey": "BASE64_ENCODED_BBS_PUBLIC_KEY",
+  "publicKey": "BASE64_ENCODED_PUBLIC_KEY",
 }
             </pre>
         </div>
@@ -453,7 +432,7 @@ Response:
   "issuance": "BASE64_ENCODED_ISSUANCE_DATA",
 }
             </pre>
-            <p>The <code>request</code> field contains the client's blinded values (k, r) needed for the BBS signature. The <code>issuance</code> response contains the data needed to construct a valid Credit Token.</p>
+            <p>The <code>request</code> field contains the client's blinded values (k, r) needed for the authentication code. The <code>issuance</code> response contains the data needed to construct a valid Credit Token.</p>
         </div>
         
         <div class="api-example">
@@ -480,11 +459,11 @@ Response Body:
             <p>The <code>X-Anonymous-Credits-Proof</code> header contains:</p>
             <ul>
                 <li>The revealed k value (for double-spend prevention)</li>
-                <li>Zero-knowledge proof of a valid signature on (n, k, r)</li>
+                <li>Zero-knowledge proof of a valid authentication code on (n, k, r)</li>
                 <li>Proof that n ≥ c (where c is the amount being spent)</li>
                 <li>Commitment to new values (n-c, k', r') for the remaining balance</li>
             </ul>
-            <p>The <code>X-Anonymous-Credits-Refund</code> header contains the signature needed to construct a new Credit Token with the remaining balance.</p>
+            <p>The <code>X-Anonymous-Credits-Refund</code> header contains the authentication code needed to construct a new Credit Token with the remaining balance.</p>
         </div>
         
         <h3>Security Aspects</h3>
