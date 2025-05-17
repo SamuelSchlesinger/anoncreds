@@ -413,9 +413,9 @@ Response:
 POST /api/anonymous-credits/token
 
 Headers:
-X-Anonymous-Credits-Version: 1.0
-X-Anonymous-Credits-Operation: issue
-X-Anonymous-Credits-Amount: 100
+Anonymous-Credits-Version: 1.0
+Anonymous-Credits-Operation: issue
+Anonymous-Credits-Amount: 100
 
 Request Body:
 {
@@ -440,28 +440,28 @@ Response:
 POST /api/service/endpoint
 
 Headers:
-X-Anonymous-Credits-Version: 1.0
-X-Anonymous-Credits-Operation: spend
-X-Anonymous-Credits-Amount: 10
-X-Anonymous-Credits-Proof: BASE64_ENCODED_PROOF_DATA
+Anonymous-Credits-Version: 1.0
+Anonymous-Credits-Operation: spend
+Anonymous-Credits-Amount: 10
+Anonymous-Credits-Proof: BASE64_ENCODED_PROOF_DATA
 
 Response Headers:
-X-Anonymous-Credits-Status: success
-X-Anonymous-Credits-Refund: BASE64_ENCODED_REFUND_DATA
+Anonymous-Credits-Status: success
+Anonymous-Credits-Refund: BASE64_ENCODED_REFUND_DATA
 
 Response Body:
 {
   "data": "REQUESTED_API_SERVICE_DATA"
 }
             </pre>
-            <p>The <code>X-Anonymous-Credits-Proof</code> header contains:</p>
+            <p>The <code>Anonymous-Credits-Proof</code> header contains:</p>
             <ul>
                 <li>The revealed k value (for double-spend prevention)</li>
                 <li>Zero-knowledge proof of a valid authentication code on (n, k, r)</li>
                 <li>Proof that n ≥ c (where c is the amount being spent)</li>
                 <li>Commitment to new values (n-c, k', r') for the remaining balance</li>
             </ul>
-            <p>The <code>X-Anonymous-Credits-Refund</code> header contains the authentication code needed to construct a new Credit Token with the remaining balance.</p>
+            <p>The <code>Anonymous-Credits-Refund</code> header contains the authentication code needed to construct a new Credit Token with the remaining balance.</p>
         </div>
         
         <h3>Security Aspects</h3>
